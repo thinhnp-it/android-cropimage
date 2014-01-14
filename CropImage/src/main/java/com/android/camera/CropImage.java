@@ -71,6 +71,7 @@ public class CropImage extends MonitoredActivity {
     private int mAspectX, mAspectY;
     private boolean mDoFaceDetection = true;
     private boolean mCircleCrop = false;
+    private boolean mOutputRectangle = false; // only used with mCircleCrop
     private final Handler mHandler = new Handler();
 
     // These options specifiy the output image size and whether we should
@@ -110,6 +111,9 @@ public class CropImage extends MonitoredActivity {
                 mAspectX = 1;
                 mAspectY = 1;
                 mOutputFormat = Bitmap.CompressFormat.PNG;
+                if (extras.getBoolean("outputRectangle", false)) {
+                	mOutputRectangle = true;
+                }
             }
             mSaveUri = (Uri) extras.getParcelable(MediaStore.EXTRA_OUTPUT);
             if (mSaveUri != null) {
@@ -261,13 +265,15 @@ public class CropImage extends MonitoredActivity {
             // If we are circle cropping, we want alpha channel, which is the
             // third param here.
             croppedImage = Bitmap.createBitmap(width, height,
-                    mCircleCrop
+                    (mCircleCrop && !mOutputRectangle) 
                     ? Bitmap.Config.ARGB_8888
                     : Bitmap.Config.RGB_565);
 
             Canvas canvas = new Canvas(croppedImage);
             
-            if (mCircleCrop) {                         
+            // If we are circle cropping AND the output is not required to a rectangle image, 
+            // we draw a bitmap as circle 
+            if (mCircleCrop && !mOutputRectangle) {                         
                 final int color = 0xffff0000;
                 final Paint paint = new Paint();
         		final Rect rect = new Rect(0, 0, croppedImage.getWidth(), croppedImage.getHeight());
